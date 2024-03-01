@@ -20,10 +20,6 @@ app.get("/create", (req, res) => {
 
 // Save Post
 app.post("/upload", (req, res) => {
-    let title = req.body["title"];
-    let content = req.body["blogText"];
-    
-    addPost(title, content);
     res.redirect("/");
 });
 

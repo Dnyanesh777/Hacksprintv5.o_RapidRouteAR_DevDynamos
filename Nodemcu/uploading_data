@@ -1,0 +1,143 @@
+#define BLYNK_TEMPLATE_ID "TMPL0DaDYnuy"
+#define BLYNK_DEVICE_NAME "Power Theft Detection"
+#define BLYNK_AUTH_TOKEN "w7FCnZ-dzcRvfm5Za8y-ABTDyqAJ1bss"
+
+
+#define BLYNK_PRINT Serial
+#include<SoftwareSerial.h>
+SoftwareSerial s(D5,D6);//RX,TX pins
+//int data;
+char auth[] = BLYNK_AUTH_TOKEN;
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "Ghanshyam";
+char pass[] = "Ghanesh123";
+#include<ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#include<ThingSpeak.h>
+#include<WiFiClient.h>
+
+
+
+
+WiFiClient client ;
+BlynkTimer timer;
+String  data = s.readStringUntil('\r');
+double dataint = data.toDouble();
+
+
+char WriteApi_Key[]="UC2WPZ54QDABH9IR";
+unsigned long ChannelId=1934235;
+
+void senddata()
+{
+   Blynk.virtualWrite(V3, dataint);
+}
+
+BLYNK_WRITE(V0)
+{
+  int value = param.asInt();
+  Serial.println(value);
+  if(value==1)
+  {
+    Serial.println(" Main Relay on");
+    digitalWrite(D7,HIGH);
+  }
+  if(value==0)
+  {
+    Serial.println("Main Relay off");
+    digitalWrite(D7,LOW);
+  }
+  
+}
+BLYNK_WRITE(V1)
+{
+  int value = param.asInt();
+  Serial.println(value);
+  if(value==1)
+  {
+    Serial.println(" Alternate Relay on");
+    digitalWrite(D1,HIGH);
+  }
+  if(value==0)
+  {
+    Serial.println("Alternate Relay on");
+    digitalWrite(D1,LOW);
+  }
+  
+}
+BLYNK_WRITE(V2)
+{
+  int value = param.asInt();
+  Serial.println(value);
+  if(value==1)
+  {
+    Serial.println(" Alternate Relay on");
+    digitalWrite(D3,HIGH);
+  }
+  if(value==0)
+  {
+    Serial.println("Alternate Relay on");
+    digitalWrite(D3,LOW);
+  }
+  
+}
+
+void setup() {
+ Serial.begin(115200);
+ s.begin(9600);
+ delay(10);
+  WiFi.begin(ssid,pass);
+  while(WiFi.status()!=WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("Connected");
+  ThingSpeak.begin(client);
+
+
+  pinMode(D7,OUTPUT);
+  pinMode(D1,OUTPUT);
+  pinMode(D4,OUTPUT);
+  pinMode(D3,OUTPUT);
+  
+  
+  
+
+  Blynk.begin(auth, ssid, pass);
+  timer.setInterval(1000L, senddata);
+ 
+
+
+}
+
+void loop() {
+  //digitalWrite(D7,HIGH);
+  //digitalWrite(D1,LOW);
+   
+  
+       Serial.println(data);
+     if (dataint>0.04){
+      digitalWrite(D7,LOW);
+      delay(1000);
+
+      digitalWrite(D1,HIGH);
+       digitalWrite(D3,LOW);
+      digitalWrite(D4,HIGH);
+      delay(5000);
+      digitalWrite(D4,HIGH);
+      
+    
+      
+     }
+      
+
+   
+      Blynk.run();
+      timer.run();
+        ThingSpeak.writeField(ChannelId,1,data,WriteApi_Key);
+        delay(1000);
+    
+  }
